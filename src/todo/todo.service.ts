@@ -14,7 +14,7 @@ export class TodoService {
     private readonly slackService: SlackService,
   ) {}
 
-  @Cron("*/1 * * * *") // 월요일 ~ 금요일 오전 8:30에 실행
+  @Cron("30 8 * * 1-5")
   async runDailyTodo(): Promise<void> {
     if (isWeekend()) {
       this.logger.log("🛏️ 주말에는 실행하지 않습니다.");
