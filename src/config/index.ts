@@ -1,14 +1,12 @@
-import dotenv from "dotenv";
+import { registerAs } from "@nestjs/config";
 
-dotenv.config();
-
-export const CONFIG = {
-  NOTION: {
-    API_KEY: process.env.NOTION_API_KEY!,
-    DATABASE_ID: process.env.NOTION_DATABASE_ID!,
+export default registerAs("config", () => ({
+  notion: {
+    apiKey: process.env.NOTION_API_KEY!,
+    databaseId: process.env.NOTION_DATABASE_ID!,
   },
-  SLACK: {
-    TOKEN: process.env.SLACK_TOKEN!,
-    CHANNEL: process.env.SLACK_CHANNEL || "#todo-notifications",
+  slack: {
+    token: process.env.SLACK_TOKEN!,
+    channel: process.env.SLACK_CHANNEL || "#todo-notifications",
   },
-};
+}));

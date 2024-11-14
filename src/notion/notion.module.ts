@@ -3,5 +3,6 @@ import { NotionService } from "./notion.service";
 
 @Module({
   providers: [NotionService],
+  exports: [NotionService],
 })
 export class NotionModule {}
