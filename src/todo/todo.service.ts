@@ -17,7 +17,7 @@ export class TodoService {
   @Cron("*/1 * * * *") // 월요일 ~ 금요일 오전 8:30에 실행
   async runDailyTodo(): Promise<void> {
     if (isWeekend()) {
-      this.logger.log("주말에는 실행하지 않습니다.");
+      this.logger.log("🛏️ 주말에는 실행하지 않습니다.");
       return;
     }
 
@@ -41,7 +41,7 @@ export class TodoService {
 
       this.logger.log("✅ 모든 작업이 완료되었습니다.");
     } catch (error) {
-      this.logger.error("오류 발생:", error);
+      this.logger.error("🚨 오류 발생:", error);
       handleError(error);
       throw error;
     }

@@ -32,7 +32,7 @@ export class SlackService {
         blocks,
       });
     } catch (error) {
-      throw new AppError("슬랙 알림 전송 실패", 503);
+      throw new AppError("🚨 슬랙 알림 전송 실패", 503);
     }
   }
 

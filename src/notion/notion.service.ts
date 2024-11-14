@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Client } from "@notionhq/client";
-import { createHeading, createParagraph, createTodo } from "src/utils/blocks";
+import { createHeading, createParagraph, createTodo } from "src/utils/notion-blocks";
 import { NotionBlock, TodoSection, TodoSectionType } from "./types/notion.types";
 import { BlockObjectRequest, CreatePageResponse } from "@notionhq/client/build/src/api-endpoints";
 import { getDateStr, getISODateStr, getLastWorkday } from "src/utils/date";
@@ -60,7 +60,7 @@ export class NotionService {
 
       return this.extractTodos(blocks.results as NotionBlock[]);
     } catch (error) {
-      throw new AppError("할 일 목록을 불러오는 중 오류가 발생했습니다.", 500);
+      throw new AppError("🚨 할 일 목록을 불러오는 중 오류가 발생했습니다.", 500);
     }
   }
 
@@ -79,7 +79,7 @@ export class NotionService {
         children,
       });
     } catch (error) {
-      throw new AppError("TODO 생성 실패", 500);
+      throw new AppError("🚨 TODO 생성 실패", 500);
     }
   }
 
