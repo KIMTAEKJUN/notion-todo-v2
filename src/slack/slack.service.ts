@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { WebClient } from "@slack/web-api";
 import { SlackBlock, SlackNotificationContent } from "./types/slack.types";
@@ -7,6 +7,7 @@ import { AppError } from "src/errors/error";
 @Injectable()
 export class SlackService {
   private client: WebClient;
+  private readonly logger = new Logger(SlackService.name);
 
   constructor(private configService: ConfigService) {
     this.client = new WebClient(this.configService.get<string>("config.slack.token"));
@@ -19,6 +20,8 @@ export class SlackService {
     todos: { pendingTodos, inProgressTodos },
   }: SlackNotificationContent): Promise<void> {
     try {
+      this.logger.log("🔔 슬랙 알림 전송 시작");
+
       const blocks = this.buildBlocks({
         todayMessage,
         beforeDayMessage,
@@ -31,7 +34,10 @@ export class SlackService {
         text: todayMessage,
         blocks,
       });
+
+      this.logger.log("✅ 슬랙 알림 전송 완료");
     } catch (error) {
+      this.logger.error("🚨 슬랙 알림 전송 실패:", error);
       throw new AppError("🚨 슬랙 알림 전송 실패", 503);
     }
   }
@@ -83,6 +89,7 @@ export class SlackService {
 
   // 에러 발생 시 알림 전송
   async sendErrorNotification(errorMessage: string): Promise<void> {
+    this.logger.warn(`🚨 에러 알림 전송: ${errorMessage}`);
     await this.sendNotification({
       todayMessage: `🚨 ${errorMessage}`,
       beforeDayMessage: "🧑🏻‍💻 서비스를 확인해주세요.",

@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Client } from "@notionhq/client";
 import { createHeading, createParagraph, createTodo } from "src/utils/notion-blocks";
@@ -10,6 +10,7 @@ import { AppError } from "src/errors/error";
 @Injectable()
 export class NotionService {
   private client: Client;
+  private readonly logger = new Logger(NotionService.name);
 
   constructor(private configService: ConfigService) {
     this.client = new Client({
@@ -23,6 +24,8 @@ export class NotionService {
       const lastWorkday = getLastWorkday();
       const dateStr = getDateStr(lastWorkday);
       const isoDate = getISODateStr(lastWorkday);
+
+      this.logger.log(`📆 전날 [${dateStr}]의 미완료된 TODO 항목 조회 시작`);
 
       // Notion 데이터베이스에서 특정 날짜에 해당하는 TODO 페이지를 조회
       const response = await this.client.databases.query({
@@ -47,6 +50,7 @@ export class NotionService {
 
       // 해당 날짜의 페이지가 없는 경우 빈 배열 반환
       if (!response.results.length) {
+        this.logger.log(`🚨 [${dateStr}]에 해당하는 페이지가 없습니다.`);
         return {
           pendingTodos: [],
           inProgressTodos: [],
@@ -58,8 +62,10 @@ export class NotionService {
         block_id: response.results[0].id,
       });
 
+      this.logger.log(`✅ 전날 [${dateStr}]의 미완료된 TODO 항목 조회 완료`);
       return this.extractTodos(blocks.results as NotionBlock[]);
     } catch (error) {
+      this.logger.error("🚨 할 일 목록을 불러오는 중 오류가 발생했습니다:", error);
       throw new AppError("🚨 할 일 목록을 불러오는 중 오류가 발생했습니다.", 500);
     }
   }
@@ -68,17 +74,24 @@ export class NotionService {
   async createDailyTodo(): Promise<CreatePageResponse> {
     try {
       const today = new Date();
+      const todayStr = getDateStr(today);
+      this.logger.log(`🚀 [${todayStr}] TODO 페이지 생성 시작`);
+
       const { pendingTodos, inProgressTodos } = await this.getYesterdayUncompletedTodos();
 
       const children = this.buildPageBlocks({ pendingTodos, inProgressTodos });
 
-      return this.client.pages.create({
+      const response = await this.client.pages.create({
         parent: { database_id: this.configService.get<string>("config.notion.databaseId") },
         icon: { type: "emoji", emoji: "📅" },
         properties: this.buildPageProperties(today),
         children,
       });
+
+      this.logger.log(`✅ [${todayStr}] TODO 페이지 생성 완료`);
+      return response;
     } catch (error) {
+      this.logger.error("🚨 TODO 페이지 생성 중 오류가 발생했습니다:", error);
       throw new AppError("🚨 TODO 생성 실패", 500);
     }
   }
@@ -153,11 +166,11 @@ export class NotionService {
   // 페이지 블록을 생성하는 메서드
   private buildPageBlocks({ pendingTodos, inProgressTodos }: TodoSection): BlockObjectRequest[] {
     return [
-      createHeading("🚀 진행전인 작업"),
+      createHeading("🚀 진행 전"),
       ...(pendingTodos.length ? pendingTodos.map(createTodo) : [createTodo()]),
       createParagraph(),
 
-      createHeading("📝 진행중인 작업"),
+      createHeading("📝 진행 중"),
       ...(inProgressTodos.length ? inProgressTodos.map(createTodo) : [createTodo()]),
       createParagraph(),
 

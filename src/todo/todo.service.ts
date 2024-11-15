@@ -28,6 +28,13 @@ export class TodoService {
 
       const { pendingTodos, inProgressTodos } = await this.notionService.getYesterdayUncompletedTodos();
 
+      const formatTodos = (todos: string[]) => todos.map((todo, i) => `  ${i + 1}. ${todo}`).join("\n");
+
+      this.logger.log(`🚀 진행 전 작업 개수: ${pendingTodos.length}`);
+      this.logger.log(`🚀 진행 전 작업:\n${formatTodos(pendingTodos)}`);
+      this.logger.log(`📝 진행 중인 작업 개수: ${inProgressTodos.length}`);
+      this.logger.log(`📝 진행 중인 작업:\n${formatTodos(inProgressTodos)}`);
+
       await this.notionService.createDailyTodo();
 
       await this.slackService.sendNotification({
