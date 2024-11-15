@@ -7,7 +7,10 @@ module.exports = {
       watch: true,
       instances: 1,
       autorestart: true,
-      max_memory_restart: "200M",
+      max_memory_restart: "1G",
+      env: {
+        TZ: "Asia/Seoul",
+      },
     },
   ],
 };
